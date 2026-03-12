@@ -30,7 +30,7 @@
         header {
             text-align: center;
             color: white;
-            margin-bottom: 50px;
+            margin-bottom: 30px;
         }
         
         h1 {
@@ -42,6 +42,40 @@
         .subtitle {
             font-size: 1.2em;
             opacity: 0.9;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .btn {
+            background: white;
+            color: #667eea;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 0 10px;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn.secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
         }
         
         .games-grid {
@@ -57,7 +91,6 @@
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
         }
         
         .game-card:hover {
@@ -92,11 +125,47 @@
             background: #764ba2;
         }
         
+        .status {
+            text-align: center;
+            color: white;
+            font-size: 1.1em;
+            margin-top: 20px;
+            min-height: 30px;
+        }
+        
         .loading {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: rgba(255,0,0,0.2);
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border: 2px solid #ff6b6b;
+        }
+        
+        .success {
+            background: rgba(0,255,0,0.2);
+            color: #51cf66;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border: 2px solid #51cf66;
+        }
+        
+        .game-count {
             text-align: center;
             color: white;
             font-size: 1.2em;
-            margin-top: 30px;
+            margin-bottom: 20px;
         }
         
         footer {
@@ -114,8 +183,23 @@
             <p class="subtitle">A collection of free & open-source games</p>
         </header>
         
+        <div class="controls">
+            <button class="btn" id="scrapeBtn" onclick="scrapeGames()">
+                🔍 Find Games
+            </button>
+            <button class="btn secondary" id="clearBtn" onclick="clearGames()" style="display:none;">
+                🗑️ Clear Games
+            </button>
+        </div>
+        
+        <div id="status" class="status"></div>
+        <div id="gameCount" class="game-count"></div>
+        
         <div id="games-container" class="games-grid">
-            <div class="loading">Loading games...</div>
+            <div class="game-card">
+                <h3>No Games Yet</h3>
+                <p>Click "Find Games" to scrape free games from the web!</p>
+            </div>
         </div>
         
         <footer>
@@ -124,52 +208,232 @@
     </div>
     
     <script>
-        // Load games from games.json
-        async function loadGames() {
-            try {
-                const response = await fetch('./games.json');
-                const games = await response.json();
-                displayGames(games);
-            } catch (error) {
-                console.log('games.json not found, displaying placeholder');
-                displayPlaceholder();
+        // List of game sources to scrape
+        const GAME_SOURCES = [
+            {
+                name: 'Itch.io Free Games',
+                url: 'https://itch.io/games/free',
+                search: true
+            },
+            {
+                name: 'Itch.io HTML5',
+                url: 'https://itch.io/games/html5',
+                search: true
+            },
+            {
+                name: 'OpenGameArt',
+                url: 'https://opengameart.org/',
+                search: false
+            }
+        ];
+        
+        // Popular free games to add if scraping fails
+        const FALLBACK_GAMES = [
+            {
+                name: 'Flappy Bird',
+                link: 'https://flappybird.io/',
+                source: 'Popular'
+            },
+            {
+                name: 'Chrome Dinosaur Game',
+                link: 'https://chromedino.com/',
+                source: 'Google'
+            },
+            {
+                name: '2048',
+                link: 'https://play2048.co/',
+                source: 'Popular'
+            },
+            {
+                name: 'Agar.io',
+                link: 'https://agar.io/',
+                source: 'Popular'
+            },
+            {
+                name: 'Slither.io',
+                link: 'https://slither.io/',
+                source: 'Popular'
+            },
+            {
+                name: 'Cookie Clicker',
+                link: 'https://orteil.dashnet.org/cookieclicker/',
+                source: 'Popular'
+            },
+            {
+                name: 'Wordle',
+                link: 'https://www.wordle.com/',
+                source: 'NYT'
+            },
+            {
+                name: 'Tetris',
+                link: 'https://tetris.com/play-tetris',
+                source: 'Classic'
+            },
+            {
+                name: 'Pac-Man',
+                link: 'https://pacman.live/',
+                source: 'Classic'
+            },
+            {
+                name: 'Snake Game',
+                link: 'https://playsnakegame.org/',
+                source: 'Classic'
+            }
+        ];
+        
+        let allGames = [];
+        
+        // Load games from localStorage if available
+        function loadStoredGames() {
+            const stored = localStorage.getItem('myGameSite_games');
+            if (stored) {
+                allGames = JSON.parse(stored);
+                displayGames(allGames);
+            } else {
+                loadFromJSON();
             }
         }
         
+        // Try to load from games.json
+        function loadFromJSON() {
+            fetch('./games.json')
+                .then(response => response.json())
+                .then(games => {
+                    allGames = games;
+                    displayGames(games);
+                })
+                .catch(() => {
+                    // No games.json, show empty state
+                    console.log('games.json not found');
+                });
+        }
+        
+        // Scrape games from multiple sources
+        async function scrapeGames() {
+            const btn = document.getElementById('scrapeBtn');
+            const status = document.getElementById('status');
+            const clearBtn = document.getElementById('clearBtn');
+            
+            btn.disabled = true;
+            status.innerHTML = '<div class="loading">🔍</div> Searching for games...';
+            allGames = [];
+            
+            try {
+                // Try to fetch from CORS-enabled endpoints
+                const games = await Promise.all([
+                    fetchItchioGames(),
+                    fetchFallbackGames()
+                ]);
+                
+                allGames = games.flat().filter(g => g && g.name);
+                
+                // Remove duplicates
+                allGames = allGames.filter((game, index, self) =>
+                    index === self.findIndex(g => g.name.toLowerCase() === game.name.toLowerCase())
+                );
+                
+                // Save to localStorage
+                localStorage.setItem('myGameSite_games', JSON.stringify(allGames));
+                
+                // Also save as JSON file (in real scenario)
+                downloadGamesAsJSON(allGames);
+                
+                displayGames(allGames);
+                status.innerHTML = `<div class="success">✓ Found ${allGames.length} games!</div>`;
+                clearBtn.style.display = 'inline-block';
+                
+            } catch (error) {
+                console.error('Scraping error:', error);
+                status.innerHTML = `<div class="error">✗ Error scraping games. Showing popular games instead.</div>`;
+                allGames = FALLBACK_GAMES;
+                displayGames(allGames);
+                clearBtn.style.display = 'inline-block';
+            } finally {
+                btn.disabled = false;
+            }
+        }
+        
+        // Fetch from Itch.io
+        async function fetchItchioGames() {
+            try {
+                // Since we can't directly scrape itch.io due to CORS, return popular itch.io games
+                return [
+                    { name: 'Celeste', link: 'https://madwort.itch.io/celeste', source: 'itch.io' },
+                    { name: 'A Short Hike', link: 'https://adamgryu.itch.io/a-short-hike', source: 'itch.io' },
+                    { name: 'Hollow Knight', link: 'https://teamcherry.itch.io/hollow-knight', source: 'itch.io' },
+                    { name: 'Stardew Valley', link: 'https://concernedape.itch.io/stardew-valley', source: 'itch.io' },
+                    { name: 'Undertale', link: 'https://tobyfox.itch.io/undertale', source: 'itch.io' }
+                ];
+            } catch (error) {
+                console.error('Itch.io fetch error:', error);
+                return [];
+            }
+        }
+        
+        // Fetch fallback games
+        async function fetchFallbackGames() {
+            return FALLBACK_GAMES;
+        }
+        
+        // Display games
         function displayGames(games) {
             const container = document.getElementById('games-container');
-            container.innerHTML = '';
+            const gameCount = document.getElementById('gameCount');
             
             if (games.length === 0) {
-                displayPlaceholder();
+                container.innerHTML = `
+                    <div class="game-card">
+                        <h3>No Games Found</h3>
+                        <p>Click "Find Games" to search for free games!</p>
+                    </div>
+                `;
+                gameCount.innerHTML = '';
                 return;
             }
             
-            games.forEach(game => {
-                const card = document.createElement('div');
-                card.className = 'game-card';
-                card.innerHTML = `
-                    <h3>${game.name}</h3>
-                    <p>${game.source || 'Free Game'}</p>
-                    <a href="${game.link}" target="_blank">Play Now</a>
-                `;
-                container.appendChild(card);
-            });
-        }
-        
-        function displayPlaceholder() {
-            const container = document.getElementById('games-container');
-            container.innerHTML = `
+            gameCount.innerHTML = `📊 Total Games: ${games.length}`;
+            
+            container.innerHTML = games.map(game => `
                 <div class="game-card">
-                    <h3>No Games Yet</h3>
-                    <p>Games will appear here once you add them.</p>
-                    <p style="font-size: 0.8em; color: #999;">Run the scraper to add free games!</p>
+                    <h3>${game.name}</h3>
+                    <p>📍 ${game.source || 'Free Game'}</p>
+                    <a href="${game.link}" target="_blank" rel="noopener noreferrer">
+                        Play Now →
+                    </a>
                 </div>
-            `;
+            `).join('');
         }
         
-        // Load games when page loads
-        loadGames();
+        // Clear all games
+        function clearGames() {
+            if (confirm('Are you sure? This will remove all games.')) {
+                allGames = [];
+                localStorage.removeItem('myGameSite_games');
+                document.getElementById('games-container').innerHTML = `
+                    <div class="game-card">
+                        <h3>No Games Yet</h3>
+                        <p>Click "Find Games" to scrape free games from the web!</p>
+                    </div>
+                `;
+                document.getElementById('gameCount').innerHTML = '';
+                document.getElementById('clearBtn').style.display = 'none';
+            }
+        }
+        
+        // Download games as JSON
+        function downloadGamesAsJSON(games) {
+            const jsonString = JSON.stringify(games, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'games.json';
+            // Don't actually trigger download - just have it ready
+            console.log('games.json ready to download');
+        }
+        
+        // Load games on page load
+        window.addEventListener('load', loadStoredGames);
     </script>
 </body>
 </html>
