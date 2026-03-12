@@ -106,11 +106,11 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             transition: all 0.3s;
             cursor: pointer;
-            text-decoration: none;
-            color: inherit;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            text-decoration: none;
+            color: inherit;
         }
         
         .game-card:hover {
@@ -142,17 +142,16 @@
         }
         
         .play-btn {
-            display: inline-block;
             background: #667eea;
             color: white;
             padding: 10px 20px;
             border-radius: 5px;
             text-align: center;
             font-weight: bold;
-            transition: all 0.3s;
             border: none;
             cursor: pointer;
             font-size: 1em;
+            transition: all 0.3s;
         }
         
         .play-btn:hover {
@@ -220,7 +219,6 @@
             { name: 'Tetris', link: 'https://tetris.com/play-tetris', category: 'Puzzle' },
             { name: 'Sudoku', link: 'https://sudoku.com/', category: 'Puzzle' },
             { name: 'Threes!', link: 'https://threesjs.com/', category: 'Puzzle' },
-            { name: 'Push the Box', link: 'https://www.pushthebox.com/', category: 'Puzzle' },
             
             // Classic Games
             { name: 'Pac-Man', link: 'https://pacman.live/', category: 'Classic' },
@@ -238,7 +236,6 @@
             // Strategy
             { name: 'Chess.com', link: 'https://www.chess.com/', category: 'Strategy' },
             { name: 'Wordle', link: 'https://www.wordle.com/', category: 'Strategy' },
-            { name: 'Connect Four', link: 'https://www.mathsisfun.com/games/connect4.html', category: 'Strategy' },
             
             // Clicker/Idle
             { name: 'Cookie Clicker', link: 'https://orteil.dashnet.org/cookieclicker/', category: 'Idle' },
@@ -256,23 +253,15 @@
             // Card Games
             { name: 'Solitaire', link: 'https://solitaire.com/', category: 'Card' },
             { name: 'Hearts', link: 'https://www.247hearts.com/', category: 'Card' },
-            { name: 'Spider Solitaire', link: 'https://www.spidersolitaire.com/', category: 'Card' },
             
             // Adventure
             { name: 'A Dark Room', link: 'https://adarkroom.doublespeakgames.com/', category: 'Adventure' },
-            { name: 'Monkey Mart', link: 'https://monkeymart.com/', category: 'Adventure' },
             
             // Word Games
             { name: 'Hangman', link: 'https://hangman.letsdohangman.com/', category: 'Word' },
             
             // Sports
             { name: 'Basketball Stars', link: 'https://basketball-stars.com/', category: 'Sports' },
-            
-            // Collections
-            { name: 'Y8 Games', link: 'https://www.y8.com/', category: 'Collection' },
-            { name: 'Kongregate', link: 'https://www.kongregate.com/', category: 'Collection' },
-            { name: 'Miniclip', link: 'https://www.miniclip.com/', category: 'Collection' },
-            { name: 'Armor Games', link: 'https://www.armorgames.com/', category: 'Collection' },
         ];
         
         let filteredGames = [];
@@ -337,21 +326,18 @@
             
             noGames.style.display = 'none';
             
-            gamesGrid.innerHTML = games.map(game => `
-                <div class="game-card" onclick="playGame('${game.link}')">
+            gamesGrid.innerHTML = games.map((game, index) => `
+                <a href="${game.link}" target="_blank" rel="noopener noreferrer" class="game-card">
                     <div>
                         <div class="category">${game.category}</div>
                         <h3>${game.name}</h3>
                         <p>Click to play in a new tab</p>
                     </div>
-                    <button class="play-btn">▶ Play Now</button>
-                </div>
+                    <button class="play-btn" onclick="event.preventDefault(); window.open('${game.link}', '_blank');">
+                        ▶ Play Now
+                    </button>
+                </a>
             `).join('');
-        }
-        
-        // Play game in new tab
-        function playGame(link) {
-            window.open(link, '_blank');
         }
     </script>
 </body>
