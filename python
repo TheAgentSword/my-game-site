@@ -1,0 +1,302 @@
+#!/usr/bin/env python3
+"""
+GN-Math Games Sync Script
+Clones all games from GN-Math and pushes them to your private GitHub repo
+"""
+
+import os
+import subprocess
+import json
+import shutil
+from pathlib import Path
+from datetime import datetime
+
+class GamesSyncManager:
+    def __init__(self, github_username="TheAgentSword", repo_name="my-game-site"):
+        self.github_username = github_username
+        self.repo_name = repo_name
+        self.user_repo_url = f"https://github.com/{github_username}/{repo_name}.git"
+        self.gn_math_repo = "https://github.com/gn-math/gn-math.github.io.git"
+        
+        self.work_dir = Path("/home/claude/games_sync")
+        self.gn_math_dir = self.work_dir / "gn-math-source"
+        self.user_repo_dir = self.work_dir / repo_name
+        
+        self.games_list = []
+    
+    def setup_directories(self):
+        """Create necessary directories"""
+        print("📁 Setting up directories...\n")
+        self.work_dir.mkdir(exist_ok=True)
+        print(f"✓ Working directory: {self.work_dir}")
+    
+    def clone_gn_math(self):
+        """Clone GN-Math repository"""
+        print("\n📥 Cloning GN-Math repository...\n")
+        
+        if self.gn_math_dir.exists():
+            print(f"⚠ GN-Math source already exists, using existing copy")
+            return True
+        
+        try:
+            subprocess.run(
+                ["git", "clone", "--depth", "1", self.gn_math_repo, str(self.gn_math_dir)],
+                check=True,
+                capture_output=True,
+                timeout=300
+            )
+            print(f"✓ Cloned GN-Math to {self.gn_math_dir}")
+            return True
+        except subprocess.CalledProcessError as e:
+            print(f"✗ Failed to clone GN-Math: {e}")
+            return False
+        except Exception as e:
+            print(f"✗ Error: {e}")
+            return False
+    
+    def clone_user_repo(self):
+        """Clone your private repository"""
+        print("\n📥 Cloning your private repository...\n")
+        
+        if self.user_repo_dir.exists():
+            print(f"⚠ User repo already exists at {self.user_repo_dir}")
+            return True
+        
+        try:
+            subprocess.run(
+                ["git", "clone", self.user_repo_url, str(self.user_repo_dir)],
+                check=True,
+                capture_output=True,
+                timeout=300
+            )
+            print(f"✓ Cloned your repo to {self.user_repo_dir}")
+            return True
+        except subprocess.CalledProcessError as e:
+            print(f"✗ Failed to clone your repo")
+            print(f"Make sure:")
+            print(f"  1. The repo URL is correct: {self.user_repo_url}")
+            print(f"  2. You have access to this repo")
+            print(f"  3. Git is configured with your GitHub credentials")
+            print(f"\nTo set up credentials:")
+            print(f"  git config --global user.name 'Your Name'")
+            print(f"  git config --global user.email 'your@email.com'")
+            print(f"\nOr use a Personal Access Token:")
+            print(f"  git clone https://YOUR_USERNAME:YOUR_TOKEN@github.com/{self.github_username}/{self.repo_name}.git")
+            return False
+        except Exception as e:
+            print(f"✗ Error: {e}")
+            return False
+    
+    def find_games(self):
+        """Find all games in GN-Math"""
+        print("\n🎮 Scanning for games...\n")
+        
+        games_dir = self.gn_math_dir / "games"
+        if not games_dir.exists():
+            print(f"⚠ Games directory not found at {games_dir}")
+            print("Checking alternative locations...")
+            
+            # Try alternative paths
+            alt_paths = [
+                self.gn_math_dir / "game",
+                self.gn_math_dir / "src" / "games",
+            ]
+            
+            for alt_path in alt_paths:
+                if alt_path.exists():
+                    games_dir = alt_path
+                    break
+            
+            if not games_dir.exists():
+                print("✗ Could not find games directory")
+                return []
+        
+        games = []
+        for game_folder in sorted(games_dir.iterdir()):
+            if game_folder.is_dir() and not game_folder.name.startswith('.'):
+                games.append(game_folder)
+                print(f"  ✓ Found: {game_folder.name}")
+        
+        print(f"\n✓ Found {len(games)} games total\n")
+        self.games_list = games
+        return games
+    
+    def copy_games(self):
+        """Copy all games to your repo"""
+        print("\n📋 Copying games to your repository...\n")
+        
+        target_dir = self.user_repo_dir / "games"
+        target_dir.mkdir(exist_ok=True)
+        
+        copied = 0
+        failed = 0
+        
+        for game_dir in self.games_list:
+            game_name = game_dir.name
+            target_path = target_dir / game_name
+            
+            try:
+                if target_path.exists():
+                    print(f"⚠ {game_name} already exists, skipping")
+                    continue
+                
+                shutil.copytree(game_dir, target_path)
+                print(f"✓ Copied: {game_name}")
+                copied += 1
+            except Exception as e:
+                print(f"✗ Failed to copy {game_name}: {e}")
+                failed += 1
+        
+        print(f"\n✓ Copied {copied} games")
+        if failed > 0:
+            print(f"⚠ Failed to copy {failed} games")
+        
+        return copied, failed
+    
+    def create_metadata(self):
+        """Create metadata files"""
+        print("\n📝 Creating metadata files...\n")
+        
+        games_data = []
+        games_dir = self.user_repo_dir / "games"
+        
+        for game_folder in sorted(games_dir.iterdir()):
+            if game_folder.is_dir() and not game_folder.name.startswith('.'):
+                games_data.append({
+                    "name": game_folder.name.replace('-', ' ').title(),
+                    "folder": game_folder.name,
+                    "link": f"./games/{game_folder.name}/",
+                    "date_added": datetime.now().isoformat()
+                })
+        
+        # Save as JSON
+        json_file = self.user_repo_dir / "games.json"
+        with open(json_file, 'w') as f:
+            json.dump(games_data, f, indent=2)
+        print(f"✓ Created: games.json ({len(games_data)} games)")
+        
+        # Create README
+        readme_file = self.user_repo_dir / "GAMES.md"
+        with open(readme_file, 'w') as f:
+            f.write("# Game Collection\n\n")
+            f.write(f"**Total Games:** {len(games_data)}\n")
+            f.write(f"**Last Updated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+            f.write("## Games List\n\n")
+            
+            for game in games_data:
+                f.write(f"- **{game['name']}** - `{game['folder']}`\n")
+        
+        print(f"✓ Created: GAMES.md")
+    
+    def commit_and_push(self):
+        """Commit and push changes to your repo"""
+        print("\n🚀 Committing and pushing to GitHub...\n")
+        
+        try:
+            os.chdir(self.user_repo_dir)
+            
+            # Add all files
+            print("Adding files to git...")
+            subprocess.run(["git", "add", "."], check=True, capture_output=True)
+            
+            # Commit
+            commit_msg = f"Add GN-Math games collection - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            print(f"Committing: {commit_msg}")
+            subprocess.run(
+                ["git", "commit", "-m", commit_msg],
+                check=True,
+                capture_output=True
+            )
+            
+            # Push
+            print("Pushing to GitHub...")
+            subprocess.run(
+                ["git", "push", "origin", "main"],
+                check=True,
+                capture_output=True,
+                timeout=300
+            )
+            
+            print(f"✓ Successfully pushed to GitHub!")
+            print(f"✓ View your repo: {self.user_repo_url}")
+            return True
+            
+        except subprocess.CalledProcessError as e:
+            print(f"✗ Git operation failed")
+            print(f"Error: {e.stderr.decode() if e.stderr else str(e)}")
+            
+            print("\n💡 Troubleshooting:")
+            print("1. Make sure you're authenticated with GitHub")
+            print("2. Check that you have push permissions")
+            print("3. Verify the default branch is 'main' (not 'master')")
+            
+            return False
+        except Exception as e:
+            print(f"✗ Error: {e}")
+            return False
+    
+    def run(self):
+        """Run the complete sync process"""
+        print("=" * 60)
+        print("🎮 GN-Math Games Sync Manager")
+        print("=" * 60)
+        print(f"\nTarget Repository: {self.user_repo_url}")
+        print(f"Working Directory: {self.work_dir}\n")
+        
+        # Step 1: Setup
+        self.setup_directories()
+        
+        # Step 2: Clone sources
+        if not self.clone_gn_math():
+            print("\n✗ Failed to clone GN-Math")
+            return False
+        
+        if not self.clone_user_repo():
+            print("\n✗ Failed to clone your repository")
+            return False
+        
+        # Step 3: Find and copy games
+        if not self.find_games():
+            print("\n✗ No games found")
+            return False
+        
+        copied, failed = self.copy_games()
+        if copied == 0:
+            print("\n⚠ No games were copied")
+            return False
+        
+        # Step 4: Create metadata
+        self.create_metadata()
+        
+        # Step 5: Commit and push
+        if not self.commit_and_push():
+            print("\n⚠ Sync completed but push failed")
+            print("You can manually push from:", self.user_repo_dir)
+            return False
+        
+        print("\n" + "=" * 60)
+        print("✓ SYNC COMPLETE!")
+        print("=" * 60)
+        print(f"\n✓ {copied} games added to your private repository")
+        print(f"✓ Repository: {self.user_repo_url}")
+        print(f"✓ Local copy: {self.user_repo_dir}")
+        
+        return True
+
+
+def main():
+    """Main entry point"""
+    import sys
+    
+    # Get GitHub username and repo from command line or use defaults
+    github_username = sys.argv[1] if len(sys.argv) > 1 else "TheAgentSword"
+    repo_name = sys.argv[2] if len(sys.argv) > 2 else "my-game-site"
+    
+    manager = GamesSyncManager(github_username, repo_name)
+    success = manager.run()
+    
+    sys.exit(0 if success else 1)
+
+
+if __name__ == "__main__":
+    main()
