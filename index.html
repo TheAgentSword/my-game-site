@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Game Site</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .game-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .game-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .game-card p {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+        
+        .game-card a {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .game-card a:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎮 My Game Site</h1>
+        <p>Play Free Games</p>
+    </div>
+    
+    <div class="container">
+        <div class="games-grid" id="games"></div>
+    </div>
+    
+    <script>
+        const games = [
+            { name: 'Flappy Bird', link: 'https://flappybird.io/', cat: 'Action' },
+            { name: 'Pong', link: 'https://pong-game.org/', cat: 'Action' },
+            { name: 'Dino Runner', link: 'https://chromedino.com/', cat: 'Action' },
+            { name: '2048', link: 'https://play2048.co/', cat: 'Puzzle' },
+            { name: 'Tetris', link: 'https://tetris.com/play-tetris', cat: 'Puzzle' },
+            { name: 'Sudoku', link: 'https://sudoku.com/', cat: 'Puzzle' },
+            { name: 'Pac-Man', link: 'https://pacman.live/', cat: 'Classic' },
+            { name: 'Snake', link: 'https://playsnakegame.org/', cat: 'Classic' },
+            { name: 'Minesweeper', link: 'https://minesweeper.online/', cat: 'Classic' },
+            { name: 'Agar.io', link: 'https://agar.io/', cat: 'Multiplayer' },
+            { name: 'Slither.io', link: 'https://slither.io/', cat: 'Multiplayer' },
+            { name: 'Diep.io', link: 'https://diep.io/', cat: 'Multiplayer' },
+            { name: 'Chess.com', link: 'https://www.chess.com/', cat: 'Strategy' },
+            { name: 'Wordle', link: 'https://www.wordle.com/', cat: 'Strategy' },
+            { name: 'Cookie Clicker', link: 'https://orteil.dashnet.org/cookieclicker/', cat: 'Idle' },
+            { name: 'Idle Breakout', link: 'https://idlebreakout.com/', cat: 'Idle' },
+            { name: 'Moto X3M', link: 'https://www.motox3m.io/', cat: 'Racing' },
+            { name: 'Zombs Royale', link: 'https://zombsroyale.io/', cat: 'Shooting' },
+            { name: 'Solitaire', link: 'https://solitaire.com/', cat: 'Card' },
+            { name: 'A Dark Room', link: 'https://adarkroom.doublespeakgames.com/', cat: 'Adventure' },
+        ];
+        
+        function loadGames() {
+            const container = document.getElementById('games');
+            container.innerHTML = games.map(game => `
+                <div class="game-card">
+                    <h3>${game.name}</h3>
+                    <p>${game.cat}</p>
+                    <a href="${game.link}" target="_blank">Play Now</a>
+                </div>
+            `).join('');
+        }
+        
+        loadGames();
+    </script>
+</body>
+</html>
