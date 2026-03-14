@@ -5,264 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Game Site</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
+            margin: 0;
+            padding: 20px;
             font-family: Arial, sans-serif;
             background: #0a0a1a;
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .header {
-            text-align: center;
             color: white;
-            margin-bottom: 50px;
+            text-align: center;
         }
         
         h1 {
-            font-size: 3em;
-            margin-bottom: 10px;
-        }
-        
-        p {
-            color: #aaa;
-            font-size: 1.1em;
-        }
-        
-        .controls {
-            text-align: center;
+            font-size: 2.5em;
             margin-bottom: 30px;
         }
         
-        .scrape-btn {
+        button {
             background: white;
-            color: #667eea;
-            padding: 20px 60px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.3em;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            transition: all 0.3s;
-        }
-        
-        .scrape-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
-        }
-        
-        .scrape-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .status {
-            text-align: center;
-            color: white;
+            color: #0a0a1a;
+            padding: 15px 40px;
             font-size: 1.1em;
-            margin-bottom: 20px;
-            min-height: 30px;
-        }
-        
-        .spinner {
-            display: inline-block;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .games-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
-            width: 100%;
-            max-width: 1400px;
-        }
-        
-        .game-card {
-            background: #1a1a2e;
-            border: 2px solid #667eea;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-        
-        .game-card:hover {
-            transform: translateY(-5px);
-            border-color: #764ba2;
-            box-shadow: 0 8px 25px rgba(118, 75, 162, 0.3);
-        }
-        
-        .game-card h3 {
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-        
-        .game-card p {
-            color: #aaa;
-            margin-bottom: 15px;
-            font-size: 0.9em;
-        }
-        
-        .game-card button {
-            background: #667eea;
-            color: white;
-            padding: 10px 20px;
             border: none;
             border-radius: 5px;
-            font-weight: bold;
             cursor: pointer;
-            font-size: 1em;
-            transition: all 0.3s;
+            font-weight: bold;
         }
         
-        .game-card button:hover {
-            background: #764ba2;
+        button:hover {
+            background: #ddd;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🎮 My Game Site</h1>
-        <p>Free Games from GN-Math</p>
-    </div>
-    
-    <div class="controls">
-        <button class="scrape-btn" id="scrapeBtn" onclick="scrapeGames()">
-            🔍 Run Scraper
-        </button>
-    </div>
-    
-    <div class="status" id="status"></div>
-    
-    <div class="games-grid" id="games"></div>
-    
-    <script>
-        // Popular free games (fallback if scraping fails)
-        const FALLBACK_GAMES = [
-            { name: 'Flappy Bird', link: 'https://flappybird.io/', id: 'flappybird' },
-            { name: 'Pong', link: 'https://pong-game.org/', id: 'pong' },
-            { name: 'Dino Runner', link: 'https://chromedino.com/', id: 'dino' },
-            { name: '2048', link: 'https://play2048.co/', id: '2048' },
-            { name: 'Tetris', link: 'https://tetris.com/play-tetris', id: 'tetris' },
-            { name: 'Sudoku', link: 'https://sudoku.com/', id: 'sudoku' },
-            { name: 'Pac-Man', link: 'https://pacman.live/', id: 'pacman' },
-            { name: 'Snake', link: 'https://playsnakegame.org/', id: 'snake' },
-            { name: 'Minesweeper', link: 'https://minesweeper.online/', id: 'minesweeper' },
-            { name: 'Agar.io', link: 'https://agar.io/', id: 'agario' },
-            { name: 'Slither.io', link: 'https://slither.io/', id: 'slither' },
-            { name: 'Diep.io', link: 'https://diep.io/', id: 'diep' },
-            { name: 'Chess.com', link: 'https://www.chess.com/', id: 'chess' },
-            { name: 'Wordle', link: 'https://www.wordle.com/', id: 'wordle' },
-            { name: 'Cookie Clicker', link: 'https://orteil.dashnet.org/cookieclicker/', id: 'cookieclicker' },
-            { name: 'Idle Breakout', link: 'https://idlebreakout.com/', id: 'idlebreakout' },
-            { name: 'Moto X3M', link: 'https://www.motox3m.io/', id: 'motox3m' },
-            { name: 'Zombs Royale', link: 'https://zombsroyale.io/', id: 'zombsroyale' },
-            { name: 'Solitaire', link: 'https://solitaire.com/', id: 'solitaire' },
-            { name: 'Tank Trouble', link: 'https://www.tanktrouble.com/', id: 'tanktrouble' },
-        ];
-        
-        async function scrapeGames() {
-            const btn = document.getElementById('scrapeBtn');
-            const status = document.getElementById('status');
-            const gamesGrid = document.getElementById('games');
-            
-            btn.disabled = true;
-            status.innerHTML = '<span class="spinner">⏳</span> Scraping games from the web...';
-            gamesGrid.innerHTML = '';
-            
-            try {
-                // Try to fetch from GN-Math GitHub
-                const response = await fetch('https://raw.githubusercontent.com/gn-math/gn-math.github.io/main/index.html');
-                const html = await response.text();
-                
-                // Extract game links and names
-                const gamePattern = /href="([^"]*games\/[^"]*)"[^>]*>([^<]+)<\/a>/g;
-                const games = [];
-                let match;
-                
-                while ((match = gamePattern.exec(html)) !== null && games.length < 25) {
-                    let link = match[1];
-                    const name = match[2].trim();
-                    
-                    // Make absolute URL
-                    if (link.startsWith('/')) {
-                        link = 'https://gn-math.github.io' + link;
-                    } else if (!link.startsWith('http')) {
-                        link = 'https://gn-math.github.io/' + link;
-                    }
-                    
-                    if (name.length > 2 && name.length < 60) {
-                        games.push({
-                            name: name,
-                            link: link,
-                            id: name.toLowerCase().replace(/\s+/g, '-')
-                        });
-                    }
-                }
-                
-                if (games.length > 0) {
-                    displayGames(games);
-                    status.innerHTML = `<span style="color: #51cf66;">✓ Found ${games.length} games from GN-Math!</span>`;
-                } else {
-                    throw new Error('No games found');
-                }
-                
-            } catch (error) {
-                console.error('Scraping error:', error);
-                status.innerHTML = '<span style="color: #ffc107;">⚠ Loading popular free games instead...</span>';
-                displayGames(FALLBACK_GAMES);
-                setTimeout(() => {
-                    document.getElementById('status').innerHTML = '<span style="color: #51cf66;">✓ Loaded 20 popular games!</span>';
-                }, 1000);
-            }
-            
-            btn.disabled = false;
-        }
-        
-        function playGame(gameName, gameId, gameLink) {
-            const newTab = window.open('', '_blank');
-            newTab.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>About @ ${gameName}</title>
-                    <meta http-equiv="refresh" content="0; url='${gameLink}'" />
-                </head>
-                <body>
-                    <p>Loading ${gameName}...</p>
-                </body>
-                </html>
-            `);
-            newTab.document.close();
-        }
-        
-        function displayGames(games) {
-            const gamesGrid = document.getElementById('games');
-            gamesGrid.innerHTML = games.map(game => `
-                <div class="game-card" onclick="playGame('${game.name.replace(/'/g, "\\'")}', '${game.id}', '${game.link}')">
-                    <h3>${game.name}</h3>
-                    <p>Free Game</p>
-                    <button>▶ Play Now</button>
-                </div>
-            `).join('');
-        }
-    </script>
+    <h1>🎮 My Game Site</h1>
+    <button onclick="alert('Hello World')">Click Me</button>
 </body>
 </html>
