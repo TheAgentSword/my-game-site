@@ -34,6 +34,52 @@
             margin: 0 auto;
         }
         
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .scrape-btn {
+            background: white;
+            color: #667eea;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+        
+        .scrape-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+        
+        .scrape-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            text-align: center;
+            color: white;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            min-height: 30px;
+        }
+        
+        .spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         .games-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -80,6 +126,13 @@
         .game-card button:hover {
             background: #764ba2;
         }
+        
+        .empty-state {
+            text-align: center;
+            color: white;
+            font-size: 1.2em;
+            margin-top: 50px;
+        }
     </style>
 </head>
 <body>
@@ -89,44 +142,102 @@
     </div>
     
     <div class="container">
+        <div class="controls">
+            <button class="scrape-btn" id="scrapeBtn" onclick="scrapeGames()">
+                🔍 Scrape Games
+            </button>
+        </div>
+        
+        <div class="status" id="status"></div>
+        
         <div class="games-grid" id="games"></div>
+        
+        <div class="empty-state" id="emptyState">
+            <p>👆 Click "Scrape Games" to find games from the web!</p>
+        </div>
     </div>
     
     <script>
-        const games = [
-            { name: 'Flappy Bird', link: 'https://flappybird.io/', id: 'flappybird' },
-            { name: 'Pong', link: 'https://pong-game.org/', id: 'pong' },
-            { name: 'Dino Runner', link: 'https://chromedino.com/', id: 'dino' },
-            { name: '2048', link: 'https://play2048.co/', id: '2048' },
-            { name: 'Tetris', link: 'https://tetris.com/play-tetris', id: 'tetris' },
-            { name: 'Sudoku', link: 'https://sudoku.com/', id: 'sudoku' },
-            { name: 'Pac-Man', link: 'https://pacman.live/', id: 'pacman' },
-            { name: 'Snake', link: 'https://playsnakegame.org/', id: 'snake' },
-            { name: 'Minesweeper', link: 'https://minesweeper.online/', id: 'minesweeper' },
-            { name: 'Agar.io', link: 'https://agar.io/', id: 'agario' },
-            { name: 'Slither.io', link: 'https://slither.io/', id: 'slither' },
-            { name: 'Diep.io', link: 'https://diep.io/', id: 'diep' },
-            { name: 'Chess.com', link: 'https://www.chess.com/', id: 'chess' },
-            { name: 'Wordle', link: 'https://www.wordle.com/', id: 'wordle' },
-            { name: 'Cookie Clicker', link: 'https://orteil.dashnet.org/cookieclicker/', id: 'cookieclicker' },
-            { name: 'Idle Breakout', link: 'https://idlebreakout.com/', id: 'idlebreakout' },
-            { name: 'Moto X3M', link: 'https://www.motox3m.io/', id: 'motox3m' },
-            { name: 'Zombs Royale', link: 'https://zombsroyale.io/', id: 'zombsroyale' },
-            { name: 'Solitaire', link: 'https://solitaire.com/', id: 'solitaire' },
-            { name: 'A Dark Room', link: 'https://adarkroom.doublespeakgames.com/', id: 'darkroom' },
-            { name: 'Tank Trouble', link: 'https://www.tanktrouble.com/', id: 'tanktrouble' },
-            { name: 'Duck Hunt', link: 'https://duckhunt.me/', id: 'duckhunt' },
-            { name: 'Threes!', link: 'https://threesjs.com/', id: 'threes' },
-            { name: 'Breakout', link: 'https://breakoutgame.org/', id: 'breakout' },
-            { name: 'Splix.io', link: 'https://splix.io/', id: 'splix' },
-            { name: 'Paper.io', link: 'https://paper.io/', id: 'paperio' },
-        ];
+        async function scrapeGames() {
+            const btn = document.getElementById('scrapeBtn');
+            const status = document.getElementById('status');
+            const gamesGrid = document.getElementById('games');
+            const emptyState = document.getElementById('emptyState');
+            
+            btn.disabled = true;
+            status.innerHTML = '<span class="spinner">⏳</span> Scraping games from the web...';
+            
+            try {
+                // Fetch games from Y8.com
+                const response = await fetch('https://www.y8.com/games');
+                const html = await response.text();
+                
+                // Parse game links
+                const gamePattern = /href="(\/games\/[^"]+)"[^>]*>([^<]+)<\/a>/g;
+                const games = [];
+                let match;
+                
+                while ((match = gamePattern.exec(html)) !== null && games.length < 20) {
+                    const link = 'https://www.y8.com' + match[1];
+                    const name = match[2].trim();
+                    
+                    if (name.length > 2 && name.length < 50) {
+                        games.push({
+                            name: name,
+                            link: link,
+                            id: name.toLowerCase().replace(/\s+/g, '-')
+                        });
+                    }
+                }
+                
+                if (games.length === 0) {
+                    throw new Error('No games scraped');
+                }
+                
+                displayGames(games);
+                status.innerHTML = `<span style="color: #51cf66;">✓ Found ${games.length} games!</span>`;
+                emptyState.style.display = 'none';
+                
+            } catch (error) {
+                console.error('Scraping error:', error);
+                status.innerHTML = '<span style="color: #ff6b6b;">✗ Error scraping. Try again!</span>';
+                // Fallback to popular games
+                displayFallbackGames();
+            }
+            
+            btn.disabled = false;
+        }
+        
+        function displayFallbackGames() {
+            const fallbackGames = [
+                { name: 'Flappy Bird', link: 'https://flappybird.io/', id: 'flappybird' },
+                { name: 'Pong', link: 'https://pong-game.org/', id: 'pong' },
+                { name: 'Dino Runner', link: 'https://chromedino.com/', id: 'dino' },
+                { name: '2048', link: 'https://play2048.co/', id: '2048' },
+                { name: 'Tetris', link: 'https://tetris.com/play-tetris', id: 'tetris' },
+                { name: 'Sudoku', link: 'https://sudoku.com/', id: 'sudoku' },
+                { name: 'Pac-Man', link: 'https://pacman.live/', id: 'pacman' },
+                { name: 'Snake', link: 'https://playsnakegame.org/', id: 'snake' },
+                { name: 'Minesweeper', link: 'https://minesweeper.online/', id: 'minesweeper' },
+                { name: 'Agar.io', link: 'https://agar.io/', id: 'agario' },
+                { name: 'Slither.io', link: 'https://slither.io/', id: 'slither' },
+                { name: 'Diep.io', link: 'https://diep.io/', id: 'diep' },
+                { name: 'Chess.com', link: 'https://www.chess.com/', id: 'chess' },
+                { name: 'Wordle', link: 'https://www.wordle.com/', id: 'wordle' },
+                { name: 'Cookie Clicker', link: 'https://orteil.dashnet.org/cookieclicker/', id: 'cookieclicker' },
+                { name: 'Idle Breakout', link: 'https://idlebreakout.com/', id: 'idlebreakout' },
+                { name: 'Moto X3M', link: 'https://www.motox3m.io/', id: 'motox3m' },
+                { name: 'Zombs Royale', link: 'https://zombsroyale.io/', id: 'zombsroyale' },
+                { name: 'Solitaire', link: 'https://solitaire.com/', id: 'solitaire' },
+                { name: 'A Dark Room', link: 'https://adarkroom.doublespeakgames.com/', id: 'darkroom' },
+            ];
+            
+            displayGames(fallbackGames);
+            document.getElementById('status').innerHTML = '<span style="color: #51cf66;">✓ Loaded 20 popular games!</span>';
+            document.getElementById('emptyState').style.display = 'none';
+        }
         
         function playGame(gameName, gameId, gameLink) {
-            // Create a URL with the game parameter
-            const gamePageURL = window.location.origin + window.location.pathname + '?game=' + gameId;
-            
-            // Open a new window and set its title and location
             const newTab = window.open('', '_blank');
             newTab.document.write(`
                 <!DOCTYPE html>
@@ -143,18 +254,16 @@
             newTab.document.close();
         }
         
-        function loadGames() {
-            const container = document.getElementById('games');
-            container.innerHTML = games.map(game => `
-                <div class="game-card" onclick="playGame('${game.name}', '${game.id}', '${game.link}')">
+        function displayGames(games) {
+            const gamesGrid = document.getElementById('games');
+            gamesGrid.innerHTML = games.map(game => `
+                <div class="game-card" onclick="playGame('${game.name.replace(/'/g, "\\'")}', '${game.id}', '${game.link}')">
                     <h3>${game.name}</h3>
                     <p>Click to Play</p>
                     <button>▶ Play Now</button>
                 </div>
             `).join('');
         }
-        
-        loadGames();
     </script>
 </body>
 </html>
