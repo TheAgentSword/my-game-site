@@ -94,43 +94,59 @@
     
     <script>
         const games = [
-            { name: 'Flappy Bird', link: 'https://flappybird.io/' },
-            { name: 'Pong', link: 'https://pong-game.org/' },
-            { name: 'Dino Runner', link: 'https://chromedino.com/' },
-            { name: '2048', link: 'https://play2048.co/' },
-            { name: 'Tetris', link: 'https://tetris.com/play-tetris' },
-            { name: 'Sudoku', link: 'https://sudoku.com/' },
-            { name: 'Pac-Man', link: 'https://pacman.live/' },
-            { name: 'Snake', link: 'https://playsnakegame.org/' },
-            { name: 'Minesweeper', link: 'https://minesweeper.online/' },
-            { name: 'Agar.io', link: 'https://agar.io/' },
-            { name: 'Slither.io', link: 'https://slither.io/' },
-            { name: 'Diep.io', link: 'https://diep.io/' },
-            { name: 'Chess.com', link: 'https://www.chess.com/' },
-            { name: 'Wordle', link: 'https://www.wordle.com/' },
-            { name: 'Cookie Clicker', link: 'https://orteil.dashnet.org/cookieclicker/' },
-            { name: 'Idle Breakout', link: 'https://idlebreakout.com/' },
-            { name: 'Moto X3M', link: 'https://www.motox3m.io/' },
-            { name: 'Zombs Royale', link: 'https://zombsroyale.io/' },
-            { name: 'Solitaire', link: 'https://solitaire.com/' },
-            { name: 'A Dark Room', link: 'https://adarkroom.doublespeakgames.com/' },
-            { name: 'Tank Trouble', link: 'https://www.tanktrouble.com/' },
-            { name: 'Duck Hunt', link: 'https://duckhunt.me/' },
-            { name: 'Threes!', link: 'https://threesjs.com/' },
-            { name: 'Breakout', link: 'https://breakoutgame.org/' },
-            { name: 'Splix.io', link: 'https://splix.io/' },
-            { name: 'Paper.io', link: 'https://paper.io/' },
+            { name: 'Flappy Bird', link: 'https://flappybird.io/', id: 'flappybird' },
+            { name: 'Pong', link: 'https://pong-game.org/', id: 'pong' },
+            { name: 'Dino Runner', link: 'https://chromedino.com/', id: 'dino' },
+            { name: '2048', link: 'https://play2048.co/', id: '2048' },
+            { name: 'Tetris', link: 'https://tetris.com/play-tetris', id: 'tetris' },
+            { name: 'Sudoku', link: 'https://sudoku.com/', id: 'sudoku' },
+            { name: 'Pac-Man', link: 'https://pacman.live/', id: 'pacman' },
+            { name: 'Snake', link: 'https://playsnakegame.org/', id: 'snake' },
+            { name: 'Minesweeper', link: 'https://minesweeper.online/', id: 'minesweeper' },
+            { name: 'Agar.io', link: 'https://agar.io/', id: 'agario' },
+            { name: 'Slither.io', link: 'https://slither.io/', id: 'slither' },
+            { name: 'Diep.io', link: 'https://diep.io/', id: 'diep' },
+            { name: 'Chess.com', link: 'https://www.chess.com/', id: 'chess' },
+            { name: 'Wordle', link: 'https://www.wordle.com/', id: 'wordle' },
+            { name: 'Cookie Clicker', link: 'https://orteil.dashnet.org/cookieclicker/', id: 'cookieclicker' },
+            { name: 'Idle Breakout', link: 'https://idlebreakout.com/', id: 'idlebreakout' },
+            { name: 'Moto X3M', link: 'https://www.motox3m.io/', id: 'motox3m' },
+            { name: 'Zombs Royale', link: 'https://zombsroyale.io/', id: 'zombsroyale' },
+            { name: 'Solitaire', link: 'https://solitaire.com/', id: 'solitaire' },
+            { name: 'A Dark Room', link: 'https://adarkroom.doublespeakgames.com/', id: 'darkroom' },
+            { name: 'Tank Trouble', link: 'https://www.tanktrouble.com/', id: 'tanktrouble' },
+            { name: 'Duck Hunt', link: 'https://duckhunt.me/', id: 'duckhunt' },
+            { name: 'Threes!', link: 'https://threesjs.com/', id: 'threes' },
+            { name: 'Breakout', link: 'https://breakoutgame.org/', id: 'breakout' },
+            { name: 'Splix.io', link: 'https://splix.io/', id: 'splix' },
+            { name: 'Paper.io', link: 'https://paper.io/', id: 'paperio' },
         ];
         
-        function playGame(gameLink) {
-            // Open the direct game link in a new tab
-            window.open(gameLink, '_blank');
+        function playGame(gameName, gameId, gameLink) {
+            // Create a URL with the game parameter
+            const gamePageURL = window.location.origin + window.location.pathname + '?game=' + gameId;
+            
+            // Open a new window and set its title and location
+            const newTab = window.open('', '_blank');
+            newTab.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>About @ ${gameName}</title>
+                    <meta http-equiv="refresh" content="0; url='${gameLink}'" />
+                </head>
+                <body>
+                    <p>Loading ${gameName}...</p>
+                </body>
+                </html>
+            `);
+            newTab.document.close();
         }
         
         function loadGames() {
             const container = document.getElementById('games');
             container.innerHTML = games.map(game => `
-                <div class="game-card" onclick="playGame('${game.link}')">
+                <div class="game-card" onclick="playGame('${game.name}', '${game.id}', '${game.link}')">
                     <h3>${game.name}</h3>
                     <p>Click to Play</p>
                     <button>▶ Play Now</button>
