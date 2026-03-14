@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Game Site</title>
+    <title>Howdy</title>
     <style>
         * {
             margin: 0;
@@ -13,25 +13,24 @@
         
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
             min-height: 100vh;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
         
         .header {
             text-align: center;
             color: white;
-            margin-bottom: 30px;
+            margin-bottom: 50px;
         }
         
         h1 {
-            font-size: 2.5em;
+            font-size: 3em;
             margin-bottom: 10px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
         }
         
         .controls {
@@ -42,19 +41,19 @@
         .scrape-btn {
             background: white;
             color: #667eea;
-            padding: 15px 40px;
+            padding: 20px 60px;
             border: none;
-            border-radius: 5px;
-            font-size: 1.1em;
+            border-radius: 10px;
+            font-size: 1.3em;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
             transition: all 0.3s;
         }
         
         .scrape-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
         }
         
         .scrape-btn:disabled {
@@ -84,6 +83,8 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
+            width: 100%;
+            max-width: 1400px;
         }
         
         .game-card {
@@ -91,7 +92,7 @@
             border-radius: 10px;
             padding: 20px;
             text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             transition: transform 0.3s;
             cursor: pointer;
         }
@@ -117,7 +118,6 @@
             padding: 10px 20px;
             border: none;
             border-radius: 5px;
-            text-decoration: none;
             font-weight: bold;
             cursor: pointer;
             font-size: 1em;
@@ -126,46 +126,33 @@
         .game-card button:hover {
             background: #764ba2;
         }
-        
-        .empty-state {
-            text-align: center;
-            color: white;
-            font-size: 1.2em;
-            margin-top: 50px;
-        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>🎮 My Game Site</h1>
-        <p>Play Free Games</p>
+        <p style="color: white; font-size: 1.1em;">Play Free Games</p>
     </div>
     
-    <div class="container">
-        <div class="controls">
-            <button class="scrape-btn" id="scrapeBtn" onclick="scrapeGames()">
-                🔍 Scrape Games
-            </button>
-        </div>
-        
-        <div class="status" id="status"></div>
-        
-        <div class="games-grid" id="games"></div>
-        
-        <div class="empty-state" id="emptyState">
-            <p>👆 Click "Scrape Games" to find games from the web!</p>
-        </div>
+    <div class="controls">
+        <button class="scrape-btn" id="scrapeBtn" onclick="scrapeGames()">
+            🔍 Run Scraper
+        </button>
     </div>
+    
+    <div class="status" id="status"></div>
+    
+    <div class="games-grid" id="games"></div>
     
     <script>
         async function scrapeGames() {
             const btn = document.getElementById('scrapeBtn');
             const status = document.getElementById('status');
             const gamesGrid = document.getElementById('games');
-            const emptyState = document.getElementById('emptyState');
             
             btn.disabled = true;
-            status.innerHTML = '<span class="spinner">⏳</span> Scraping games from the web...';
+            status.innerHTML = '<span class="spinner">⏳</span> Scraping games...';
+            gamesGrid.innerHTML = '';
             
             try {
                 // Fetch games from Y8.com
@@ -196,12 +183,10 @@
                 
                 displayGames(games);
                 status.innerHTML = `<span style="color: #51cf66;">✓ Found ${games.length} games!</span>`;
-                emptyState.style.display = 'none';
                 
             } catch (error) {
                 console.error('Scraping error:', error);
-                status.innerHTML = '<span style="color: #ff6b6b;">✗ Error scraping. Try again!</span>';
-                // Fallback to popular games
+                status.innerHTML = '<span style="color: #ff6b6b;">✗ Error scraping. Loading popular games...</span>';
                 displayFallbackGames();
             }
             
@@ -234,7 +219,6 @@
             
             displayGames(fallbackGames);
             document.getElementById('status').innerHTML = '<span style="color: #51cf66;">✓ Loaded 20 popular games!</span>';
-            document.getElementById('emptyState').style.display = 'none';
         }
         
         function playGame(gameName, gameId, gameLink) {
