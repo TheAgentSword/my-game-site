@@ -3,40 +3,328 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Game Site</title>
+    <title>Playground</title>
     <style>
-        body {
+        * {
             margin: 0;
-            padding: 20px;
-            font-family: Arial, sans-serif;
-            background: #0a0a1a;
-            color: white;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent: #00d4ff;
+            --accent-secondary: #ff006e;
+            --border: #2a2a2a;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header {
+            border-bottom: 1px solid var(--border);
+            padding: 2rem 0;
+            position: sticky;
+            top: 0;
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        nav a:hover {
+            color: var(--accent);
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.3s ease;
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 0;
             text-align: center;
+            animation: fadeInUp 0.8s ease;
         }
-        
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 30px;
+
+        .hero-content h1 {
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            margin-bottom: 1rem;
+            font-weight: 700;
+            letter-spacing: -1px;
         }
-        
-        button {
-            background: white;
-            color: #0a0a1a;
-            padding: 15px 40px;
-            font-size: 1.1em;
-            border: none;
-            border-radius: 5px;
+
+        .hero-content p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 0.875rem 2rem;
+            background: var(--accent);
+            color: var(--bg-primary);
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
             cursor: pointer;
-            font-weight: bold;
+            border: none;
+            font-size: 1rem;
         }
-        
-        button:hover {
-            background: #ddd;
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+        }
+
+        /* Content Sections */
+        section {
+            padding: 4rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        section h2 {
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            margin-bottom: 2rem;
+            font-weight: 700;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease backwards;
+        }
+
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.2s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.1);
+        }
+
+        .card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 2rem 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        footer a:hover {
+            color: var(--accent-secondary);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav {
+                gap: 1rem;
+            }
+
+            nav a {
+                font-size: 0.85rem;
+            }
+
+            .hero {
+                min-height: 50vh;
+                padding: 2rem 0;
+            }
+
+            section {
+                padding: 2rem 0;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>🎮 My Game Site</h1>
-    <button onclick="alert('Hello World')">Click Me</button>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">▶ Playground</div>
+                <nav>
+                    <a href="#features">Features</a>
+                    <a href="#explore">Explore</a>
+                    <a href="#about">About</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Welcome to Your Playground</h1>
+                <p>A space to create, experiment, and build amazing things. Start playing now.</p>
+                <button class="cta-button">Get Started</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features">
+        <div class="container">
+            <h2>Features</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>✨ Interactive</h3>
+                    <p>Build interactive experiences that respond to user input and create engaging moments.</p>
+                </div>
+                <div class="card">
+                    <h3>🚀 Fast</h3>
+                    <p>Lightweight and optimized for performance. Everything loads instantly and runs smoothly.</p>
+                </div>
+                <div class="card">
+                    <h3>🎨 Customizable</h3>
+                    <p>Easy to modify and extend. Change colors, add new sections, and make it your own.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Explore Section -->
+    <section id="explore">
+        <div class="container">
+            <h2>Ready to Explore?</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>🎮 Game</h3>
+                    <p>Add a game or interactive experience here.</p>
+                </div>
+                <div class="card">
+                    <h3>🎬 Animation</h3>
+                    <p>Showcase animations and visual effects.</p>
+                </div>
+                <div class="card">
+                    <h3>📊 Data</h3>
+                    <p>Display interactive data visualizations.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about">
+        <div class="container">
+            <h2>About This Playground</h2>
+            <p style="color: var(--text-secondary); max-width: 600px;">
+                This is your canvas. Add games, animations, interactive tools, or whatever you want to build and play with. 
+                The structure is ready—now it's time to fill it with your creativity.
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>Made with ❤️ | <a href="https://github.com">View on GitHub</a></p>
+        </div>
+    </footer>
 </body>
 </html>
